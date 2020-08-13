@@ -1,6 +1,8 @@
 package com.app.manager.service.implementClass;
 
 import com.app.manager.entity.Product;
+import com.app.manager.model.midware_model.ListProduct;
+import com.app.manager.model.midware_model.ProductModel;
 import com.app.manager.model.returnResult.JsonResult;
 import com.app.manager.repository.ProductRepository;
 import com.app.manager.service.interfaceClass.ProductService;
@@ -8,7 +10,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class ProductServiceImp implements ProductService {
@@ -17,8 +21,23 @@ public class ProductServiceImp implements ProductService {
     ProductRepository productRepository;
 
     @Override
-    public List<Product> getAll() {
-        return (List<Product>) productRepository.findAll();
+    public Optional<ProductModel> get(String id) {
+        var product = productRepository.findById(id);
+        if(product.isEmpty()) return Optional.empty();
+        return Optional.of(ProductModel.castToModel(product.get()));
+    }
+
+    @Override
+    public ListProduct getAll() {
+        var products = (List<Product>) productRepository.findAll();
+        List<ProductModel> productModels = new ArrayList<>();
+        for (var product: products
+             ) {
+            productModels.add(ProductModel.castToModel(product));
+        }
+        var listProduct = new ListProduct();
+        listProduct.setProductModels(productModels);
+        return listProduct;
     }
 
     @Override

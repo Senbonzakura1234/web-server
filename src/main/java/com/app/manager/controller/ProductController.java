@@ -6,10 +6,7 @@ import com.app.manager.service.interfaceClass.ProductService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.Errors;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
 
@@ -19,19 +16,28 @@ public class ProductController {
     @Autowired
     ProductService productService;
 
-    @GetMapping({"/api/product", "/api/product/index"})
+    @GetMapping(value = {"/api/product", "/api/product/index"}, produces = "application/json")
     public ResponseEntity<?> index(){
         return ResponseEntity.ok(productService.getAll());
     }
 
-    @PostMapping("/api/product/add")
+    @GetMapping(value = {"/api/product/detail"}, produces = "application/json")
+    public ResponseEntity<?> get(@RequestParam(value = "id") String id){
+        var product = productService.get(id);
+        if(product.isEmpty()) return ResponseEntity.badRequest().body("not found");
+        return ResponseEntity.ok(product.get());
+    }
+
+    @PostMapping(value = "/api/product/add",
+            consumes = "application/xml", produces = "application/json")
     public ResponseEntity<?> add(@Valid @RequestBody ProductModel productModel, Errors errors){
         if(errors.hasErrors()) return ResponseEntity.badRequest().body(errors.getAllErrors());
         var result = productService.add(ProductModel.castToEntity(productModel));
         return result.isSuccess() ? ResponseEntity.ok(result) : ResponseEntity.badRequest().body(result);
     }
 
-    @PostMapping("/api/product/sell")
+    @PostMapping(value = "/api/product/sell",
+            consumes = "application/xml", produces = "application/json")
     public ResponseEntity<?> sell(@Valid @RequestBody SellModel sellModel, Errors errors){
         if(errors.hasErrors()) return ResponseEntity.badRequest().body(errors.getAllErrors());
         var result = productService.sell(sellModel.getId(), sellModel.getAmount());
